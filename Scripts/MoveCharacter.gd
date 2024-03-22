@@ -13,8 +13,10 @@ func _ready():
 
 
 func _get_input():
-	if is_on_floor():
-		if Input.is_action_pressed("move_left"):
+	if is_on_floor(): #check that character body is on the ground
+		
+		#below ifs handle user input for movement and adjust velocity vector accordingly
+		if Input.is_action_pressed("move_left"): 
 			velocity += Vector2(-movement_speed,0)
 
 		if Input.is_action_pressed("move_right"):
@@ -23,6 +25,7 @@ func _get_input():
 		if Input.is_action_just_pressed("jump"): # Jump only happens when we're on the floor (unless we want a double jump, but we won't use that here)
 			velocity += Vector2(1,-jump_height)
 
+	#if character body not on the ground, only allow lateral movement input defined by the horizontal air coefficient
 	if not is_on_floor():
 		if Input.is_action_pressed("move_left"):
 			velocity += Vector2(-movement_speed * horizontal_air_coefficient,0)
@@ -30,25 +33,26 @@ func _get_input():
 		if Input.is_action_pressed("move_right"):
 			velocity += Vector2(movement_speed * horizontal_air_coefficient,0)
 
-func _limit_speed():
+func _limit_speed(): #if the user movement input ever causes the velocity to exceed a constant "speed limit", lock it at that speed
 	if velocity.x > speed_limit:
 		velocity = Vector2(speed_limit, velocity.y)
 
 	if velocity.x < -speed_limit:
 		velocity = Vector2(-speed_limit, velocity.y)
 
-func _apply_friction():
+func _apply_friction(): #if character is on the ground and sliding laterally, apply friction to slow the velocity down
 	if is_on_floor() and not (Input.is_action_pressed("move_left") or Input.is_action_pressed("move_right")):
 		velocity -= Vector2(velocity.x * friction, 0)
 		if abs(velocity.x) < 5:
 			velocity = Vector2(0, velocity.y) # if the velocity in x gets close enough to zero, we set it to zero
 
-func _apply_gravity():
+func _apply_gravity(): #apply gravity to characters in midair so they are brought back to the ground
 	if not is_on_floor():
 		velocity += gravity
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta):
+	#call the various functions to handle movement
 	_get_input()
 	_limit_speed()
 	_apply_friction()
